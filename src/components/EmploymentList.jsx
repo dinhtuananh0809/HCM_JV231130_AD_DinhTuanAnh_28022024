@@ -1,58 +1,59 @@
 import { useEffect, useState } from "react";
 import "../scss/style.scss";
 import axios from "axios";
-
 export default function EmploymentList() {
-  const [showForm, setShowForm] = useState(false);
-  const [showFormDel, setShowFormDel] = useState(false);
-  const [formMode, setformMode] = useState("new");
+  const [addNewStaff, setAddNewStaff] = useState(false);
+  const [newForm, setNewForm] = useState("new");
+  const [deleteStaff, setDeleteStaff] = useState(false);
   const [users, setUsers] = useState([]);
+
+  const handleSubmit = () => {
+    const userName = document.getElementById("userName").value;
+    const dateOfBirth = document.getElementById("dateOfBirth").value;
+    const email = document.getElementById("email").value;
+    const address = document.getElementById("address").value;
+    const newStaff = {
+      userName,
+      dateOfBirth,
+      email,
+      address,
+    };
+    axios
+      .post("http://localhost:3000/users", newStaff)
+      .then((res) => {
+        console.log(res);
+        setAddNewStaff(false);
+      })
+      .catch((err) => console.log(err));
+  };
+
+  // edit staff function
+  const handleEditStaff = () => {
+    const userName = document.getElementById("userName").value;
+    const dateOfBirth = document.getElementById("dateOfBirth").value;
+    const email = document.getElementById("email").value;
+    const address = document.getElementById("address").value;
+    const editStaff = {
+      userName,
+      dateOfBirth,
+      email,
+      address,
+    };
+    axios
+      .put("http://localhost:3000/users/1", editStaff)
+      .then((res) => {
+        console.log(res);
+        setAddNewStaff(false);
+      })
+      .catch((err) => console.log(err));
+  };
 
   useEffect(() => {
     axios.get("http://localhost:3000/users").then((res) => {
+      console.log(res);
       setUsers(res.data);
     });
   }, []);
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const name = e.target.elements.userName.value;
-    const date = e.target.elements.dateOfBirth.value;
-    const email = e.target.elements.email.value;
-    const address = e.target.elements.address.value;
-
-    axios
-      .post("http://localhost:3000/users", {
-        name,
-        date,
-        email,
-        address,
-      })
-      .then((res) => {
-        console.log("Thêm thành công", res);
-        e.target.reset();
-        setShowForm(false);
-      });
-  };
-
-  const handleEdit = () => {
-    setShowForm(true);
-    setformMode("edit");
-  };
-
-  const handleNewForm = () => {
-    setShowForm(true);
-    setformMode("new");
-  };
-
-  const handleDelete = () => {
-    setShowFormDel(true);
-  };
-  const DeleteStaff = (id) => {
-    axios.delete(`http://localhost:3000/users/${id}`).then((res) => {
-      console.log("Xóa thành công", res);
-      setShowFormDel(false);
-    });
-  };
 
   return (
     <div>
@@ -75,7 +76,13 @@ export default function EmploymentList() {
         <main className="main">
           <header className="d-flex justify-content-between mb-3">
             <h3>Nhân viên</h3>
-            <button className="btn btn-primary" onClick={handleNewForm}>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                setNewForm("new");
+                setAddNewStaff(true);
+              }}
+            >
               Thêm mới nhân viên
             </button>
           </header>
@@ -105,8 +112,8 @@ export default function EmploymentList() {
               {users.map((user, index) => (
                 <tr key={user.id}>
                   <td>{index + 1}</td>
-                  <td>{user.name}</td>
-                  <td>{user.date}</td>
+                  <td>{user.userName}</td>
+                  <td>{user.dateOfBirth}</td>
                   <td>{user.email}</td>
                   <td>{user.address}</td>
                   <td>
@@ -117,22 +124,59 @@ export default function EmploymentList() {
                         gap: "8px",
                       }}
                     >
-                      <div className="status status-active" />
-                      <span> Đang hoạt động</span>
+                      <div
+                        className={`status ${
+                          user.status === "active"
+                            ? "status-active"
+                            : "status-block"
+                        }`}
+                      />
+                      <span>
+                        {user.status === "active"
+                          ? "Đang hoạt động"
+                          : "Đã bị chặn"}
+                      </span>
                     </div>
                   </td>
                   <td>
-                    <span className="button button-block">Chặn</span>
+                    <span
+                      className="button button-block"
+                      onClick={() => {
+                        const newStatus =
+                          user.status === "active" ? "block" : "active";
+                        axios
+                          .patch(`http://localhost:3000/users/${user.id}`, {
+                            status: newStatus,
+                          })
+                          .then((res) => console.log(res))
+                          .catch((err) => console.log(err));
+                      }}
+                    >
+                      {user.status === "active" ? "Chặn" : "Mở chặn"}
+                    </span>
                   </td>
                   <td>
-                    <span className="button button-edit" onClick={handleEdit}>
+                    <span
+                      className="button button-edit"
+                      onClick={() => {
+                        setNewForm("edit");
+                        setAddNewStaff(true);
+                      }}
+                    >
                       Sửa
                     </span>
                   </td>
                   <td>
                     <span
                       className="button button-delete"
-                      onClick={handleDelete}
+                      onClick={() => {
+                        axios
+                          .delete(`http://localhost:3000/users/${user.id}`)
+                          .then((res) => {
+                            console.log(res);
+                            setDeleteStaff(false);
+                          });
+                      }}
                     >
                       Xóa
                     </span>
@@ -179,18 +223,17 @@ export default function EmploymentList() {
         </main>
       </div>
       {/* Form thêm mới nhân viên */}
-      <div className="overlay" hidden={!showForm}>
-        <form className="form" onSubmit={handleSubmit}>
+      <div className="overlay" hidden={!addNewStaff}>
+        <form className="form">
           <div className="d-flex justify-content-between align-items-center">
             <h4>
-              {formMode === "new"
+              {newForm === "new"
                 ? "Thêm mới nhân viên"
-                : "Chỉnh sửa nhân viên"}
+                : "Sửa thông tin nhân viên"}
             </h4>
             <i
               className="fa-solid fa-xmark"
-              onClick={() => setShowForm(false)}
-              hidden={!showForm}
+              onClick={() => setAddNewStaff(false)}
             />
           </div>
           <div>
@@ -207,8 +250,8 @@ export default function EmploymentList() {
             <input id="dateOfBirth" type="date" className="form-control" />
           </div>
           {/* <div class="form-text error">
-                    Ngày sinh không được lớn hơn ngày hiện tại.
-                </div> */}
+          Ngày sinh không được lớn hơn ngày hiện tại.
+        </div> */}
           <div>
             <label className="form-label" htmlFor="email">
               Email
@@ -228,7 +271,18 @@ export default function EmploymentList() {
             />
           </div>
           <div>
-            <button className="w-100 btn btn-primary">Thêm mới</button>
+            {newForm === "new" ? (
+              <button className="w-100 btn btn-primary" onClick={handleSubmit}>
+                Thêm mới
+              </button>
+            ) : (
+              <button
+                className="w-100 btn btn-primary"
+                onClick={handleEditStaff}
+              >
+                Cập nhật
+              </button>
+            )}
           </div>
         </form>
       </div>
@@ -249,15 +303,11 @@ export default function EmploymentList() {
         </div>
       </div>
       {/* Modal xác nhận xóa tài khoản */}
-      <div className="overlay" hidden={!showFormDel}>
+      <div className="overlay" hidden={!deleteStaff}>
         <div className="modal-custom">
           <div className="modal-title">
             <h4>Cảnh báo</h4>
-            <i
-              className="fa-solid fa-xmark"
-              onClick={() => setShowFormDel(false)}
-              hidden={!showFormDel}
-            />
+            <i className="fa-solid fa-xmark" />
           </div>
           <div className="modal-body-custom">
             <span>Bạn có chắc chắn muốn xóa tài khoản này?</span>
@@ -265,12 +315,16 @@ export default function EmploymentList() {
           <div className="modal-footer-custom">
             <button
               className="btn btn-light"
-              onClick={() => setShowFormDel(false)}
-              hidden={!showFormDel}
+              onClick={() => setDeleteStaff(false)}
             >
               Hủy
             </button>
-            <button className="btn btn-danger" onClick={DeleteStaff}>
+            <button
+              className="btn btn-danger"
+              onClick={() => {
+                setDeleteStaff(false);
+              }}
+            >
               Xác nhận
             </button>
           </div>
