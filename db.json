@@ -1,0 +1,33 @@
+{
+  "users": [
+    {
+      "id": "d3c3",
+      "name": "131",
+      "date": "2024-02-17",
+      "email": "dinhtuananh0809@gmail.com",
+      "address": "111"
+    },
+    {
+      "id": "a494",
+      "name": "nguyen van troi",
+      "date": "2024-02-15",
+      "email": "dinhtuananh1080@yahoo.com.vn",
+      "address": "1"
+    },
+    {
+      "id": "e3d3",
+      "name": "131",
+      "date": "2024-02-09",
+      "email": "dinhtuananh1080@yahoo.com.vn",
+      "address": "1"
+    },
+    {
+      "id": 2,
+      "name": "Nguyễn Văn A",
+      "date": "28/02/1990",
+      "email": "nvana@hgmail.com",
+      "address": "Ba Đình, Hà Nội",
+      "status": "active"
+    }
+  ]
+}
